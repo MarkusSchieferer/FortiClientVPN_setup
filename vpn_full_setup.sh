@@ -53,7 +53,7 @@ VPN_NAME="MYVPN_Name"
 VPN_DESCRIPTION="Description"
 VPN_SERVER_HOST="IP_OR_NAME"
 VPN_SERVER_PORT="PORT"
-VPN_USERNAME=""   # optional
+VPN_USERNAME=$(whoami)   # optional - get current username
 
 
 #Options for SSL VPN connection:  (0 or 1)
@@ -101,8 +101,8 @@ CONNECTION_BLOCK=$(cat <<EOF
                     <fgt>0</fgt>
                     <ui>
                         <show_remember_password>1</show_remember_password>
-                        <show_alwaysup>1</show_alwaysup>
-                        <show_autoconnect>1</show_autoconnect>
+                        <show_alwaysup>0</show_alwaysup>
+                        <show_autoconnect>0</show_autoconnect>
                         <save_username>1</save_username>
                         <save_password>1</save_password>
                     </ui>

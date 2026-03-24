@@ -1,4 +1,4 @@
-## Setup scripts für Forticlient VPN
+## Setup scripts für Forticlient VPN (macOS)
 
 * Verwendung des FortiClient Configuration Tools - verfügbar nach Installation von FortiClient VPN
 * Config Files -> xml

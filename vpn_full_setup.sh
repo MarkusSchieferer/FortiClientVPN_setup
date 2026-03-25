@@ -13,6 +13,14 @@
 
 set -euo pipefail
 
+# LOGGING helper function for nice output
+LOG_FILE="/var/log/setupScripts/forticlient-vpn-configuration.log"
+log() {
+  local msg="[$(date '+%Y-%m-%d %H:%M:%S')] $*"
+  echo "$msg"
+  echo "$msg" >> "$LOG_FILE"
+}
+
 FCC="/Library/Application Support/Fortinet/FortiClient/bin/FCConfig"
 CONFIG_DIR="/tmp/forticlient_vpn_setup"
 CONFIG_DESTINATION="$CONFIG_DIR/vpn_config.xml"
@@ -21,25 +29,25 @@ CONFIG_DESTINATION="$CONFIG_DIR/vpn_config.xml"
 mkdir -p "$CONFIG_DIR"
 
 if [[ ! -d "$CONFIG_DIR" ]]; then
-    echo "Error: Failed to create or cannot find directory: $CONFIG_DIR"
+    log "Error: Failed to create or cannot find directory: $CONFIG_DIR"
     exit 1
 fi
 
 # Check if FortiClient configuration tool exists
 if [[ ! -x "$FCC" ]]; then
-    echo "Error: FortiClient configuration tool not found or not executable."
-    echo "Expected location: $FCC"
+    log "Error: FortiClient configuration tool not found or not executable."
+    log "Expected location: $FCC"
     exit 1
 fi
 
 # Attempt export
-echo "Exporting VPN configuration..."
-echo "" 
+log "Exporting VPN configuration..."
+log "" 
 
 if "$FCC" -f "$CONFIG_DESTINATION" -m all -o export; then
-    echo "Success: VPN configuration exported to $CONFIG_DESTINATION"
+    log "Success: VPN configuration exported to $CONFIG_DESTINATION"
 else
-    echo "Error: Failed to export VPN configuration."
+    log "Error: Failed to export VPN configuration."
     exit 1
 fi
 
@@ -118,9 +126,9 @@ EOF
 )
 MODIFIED_XML="$CONFIG_DIR/vpn_config.modified.xml"
 
-echo "-----BLOCK START-----"
-echo "$CONNECTION_BLOCK"
-echo "-----BLOCK END-----"
+log "-----BLOCK START-----"
+log "$CONNECTION_BLOCK"
+log "-----BLOCK END-----"
 
 # ---------------------------------------------------------------------------------------
 # MODIFY THE XML WITH PERL (INSERT NEW CONNECTION OR UPDATE EXISTING ONE)
@@ -136,7 +144,7 @@ export SSL_VPN_OPTION_WARN_INVALID_SERVER_CERTIFICATE
 
 # Check if Perl is available
 if ! command -v perl &> /dev/null; then
-    echo "Error: Perl is not installed on machine or not available in PATH."
+    log "Error: Perl is not installed on machine or not available in PATH."
     exit 1
 fi
 
@@ -173,31 +181,31 @@ fi
   }
 ' "$EXPORTED_XML" > "$MODIFIED_XML"
 
-echo ""
-echo "Modified XML written to: $MODIFIED_XML"
-echo ""
+log ""
+log "Modified XML written to: $MODIFIED_XML"
+log ""
 
 
 # -----------------------------
 # SANITY CHECKS FOR MODIFIED XML
 # -----------------------------
 if [[ ! -s "$MODIFIED_XML" ]]; then
-  echo "Error: Modified XML is empty: $MODIFIED_XML"
+  log "Error: Modified XML is empty: $MODIFIED_XML"
   exit 1
 fi
 
 if ! grep -q "<sslvpn>" "$MODIFIED_XML"; then
-  echo "Error: Modified XML missing <sslvpn> block."
+  log "Error: Modified XML missing <sslvpn> block."
   exit 1
 fi
 
 if ! grep -q "<connections>" "$MODIFIED_XML"; then
-  echo "Error: Modified XML missing <connections> block."
+  log "Error: Modified XML missing <connections> block."
   exit 1
 fi
 
 if ! grep -q "<name>${VPN_NAME}</name>" "$MODIFIED_XML"; then
-  echo "Error: Modified XML does not contain expected connection name: $VPN_NAME"
+  log "Error: Modified XML does not contain expected connection name: $VPN_NAME"
   exit 1
 fi
 
@@ -208,18 +216,18 @@ fi
 
 # Check if configuration file exists
 if [[ ! -f "$MODIFIED_XML" ]]; then
-    echo "Error: Configuration file not found at: $MODIFIED_XML"
+    log "Error: Configuration file not found at: $MODIFIED_XML"
     exit 1
 fi
 
 # Attempt import
-echo ""
-echo ""
-echo "Importing VPN configuration from file $MODIFIED_XML..."
+log ""
+log ""
+log "Importing VPN configuration from file $MODIFIED_XML..."
 
 if sudo "$FCC" -m all -f "$MODIFIED_XML" -o import; then
-    echo "Success: VPN configuration imported from $MODIFIED_XML"
+    log "Success: VPN configuration imported from $MODIFIED_XML"
 else
-    echo "Error: Failed to import VPN configuration."
+    log "Error: Failed to import VPN configuration."
     exit 1
 fi

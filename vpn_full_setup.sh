@@ -61,7 +61,15 @@ VPN_NAME="MYVPN_Name"
 VPN_DESCRIPTION="Description"
 VPN_SERVER_HOST="IP_OR_NAME"
 VPN_SERVER_PORT="PORT"
-VPN_USERNAME=$(whoami)   # optional - get current username
+
+currentUser=$(/usr/sbin/scutil <<< "show State:/Users/ConsoleUser" | /usr/bin/awk '/Name :/ && ! /loginwindow/ { print $3 }')
+if [[ -z "${currentUser:-}" ]]; then
+  log "No user logged in."
+  VPN_USERNAME=""
+else
+  VPN_USERNAME="$currentUser"
+
+fi
 
 
 #Options for SSL VPN connection:  (0 or 1)

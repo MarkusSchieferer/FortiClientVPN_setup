@@ -14,6 +14,7 @@
 set -euo pipefail
 
 # LOGGING helper function for nice output
+mkdir -p "/var/log/setupScripts/"
 LOG_FILE="/var/log/setupScripts/forticlient-vpn-configuration.log"
 log() {
   local msg="[$(date '+%Y-%m-%d %H:%M:%S')] $*"
